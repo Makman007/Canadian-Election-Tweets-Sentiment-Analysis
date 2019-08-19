@@ -4,8 +4,6 @@
 # # Final Project
 # ## 2015 Canadian Election Federal Election Sentiment Analysis
 
-# In[45]:
-
 
 #Declare necesasry imports
 
@@ -22,9 +20,6 @@ import matplotlib.pyplot as plt
 get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[27]:
-
-
 #Ingest the data
 classified_txt = 'classified_tweets.txt'
 unclassified_txt = 'unclassified_tweets.txt'
@@ -32,20 +27,13 @@ unclassified_txt = 'unclassified_tweets.txt'
 classified_df = pd.read_csv(classified_txt, header=None, names=['Tweet_data'])
 
 
-# In[28]:
-
-
 classified_df.head()
 
-
-# In[29]:
 
 
 # Look at length of data set
 len(classified_df)
 
-
-# In[30]:
 
 
 # Look at a sample record
@@ -55,8 +43,6 @@ print(classified_df.loc[0][0])
 # **Data Cleaning** 
 # 
 # We will strip the first character of each string which is a 0 (negative sentiment) or a 4 (positive sentiment) in this data set and store in a new column in the df
-
-# In[103]:
 
 
 # Utility fucntion for pulling sentiment, and removing the value from original tweet string
@@ -82,39 +68,21 @@ def clean_text(tweet):
             new_tweet = new_tweet + word + " "
     return new_tweet
     
-    
-
-
-# In[36]:
-
-
 # Use Apply method to utilize utility function over the data frame
 
 classified_df['Sentiment'] = classified_df['Tweet_data'].apply(sentiment)
 classified_df['Tweet'] = classified_df['Tweet_data'].apply(strip)
 
 
-# In[93]:
-
 
 classified_df.head()
-
-
-# In[43]:
 
 
 # Code to remove any unnecessary numbers in the strings as they can compromize tokens
 classified_df['Tweet'] = classified_df['Tweet'].str.replace('(\d)','')
 
 
-# In[79]:
-
-
 (classified_df['Tweet'][0])
-
-
-# In[80]:
-
 
 # Remove any of the useless words from our tweets
 #clean_text(classified_df['Tweet'][0],useless_words) 
@@ -124,9 +92,6 @@ classified_df['Tweet']
 
 
 # I will be using the **Term Frequency Inverse Document frequecy vectorizer** offered through sci-kit learn that helps to tokenize the strings data (puts more emphasis on words that unique), and generate feature vectors for training of the classification model
-
-# In[232]:
-
 
 # Using Term Frequencies
 # TfidVectorizer  = CountVectorizer + Tfidtransfirner
@@ -149,9 +114,6 @@ testing_features = vectorizer.transform(data_test)
 
 # Train the **Naive Bayes Classifier** on this test set
 
-# In[86]:
-
-
 # Train Classifier based on Multinomial Bayes Theoram 
 
 classifier_bayes = MultinomialNB(alpha = 1)
@@ -161,9 +123,6 @@ classifier_bayes.fit(training_features,target_train)
 
 # Check the acuracy of the classifier on the test set through its in built scoreing fucntion
 
-# In[87]:
-
-
 # Test the accuracy of the classifer on the test data
 
 classifier_bayes.score(testing_features, target_test)
@@ -171,14 +130,8 @@ classifier_bayes.score(testing_features, target_test)
 
 # Ingest the Unclassified tweets in a dataframe
 
-# In[108]:
-
-
 unclassified_df = pd.read_csv(unclassified_txt, header=None, names=['Tweet'])
 unclassified_df.head()
-
-
-# In[113]:
 
 
 # Code to remove any unnecessary numbers in the strings as they can compromize tokens
@@ -188,10 +141,6 @@ unclassified_df['Tweet'] = unclassified_df['Tweet'].apply(clean_text)
 
 unclassified_df['Tweet']
 
-
-# In[115]:
-
-
 # Generate feaure vectors for the unclassified tweets based on trained data features 
 
 
@@ -199,32 +148,14 @@ unclassified_features = vectorizer.transform(unclassified_df['Tweet'])
 # Get predictions Bayes
 unclassified_tweet_sentiments_bayes = classifier_bayes.predict(unclassified_features)
 
-
-# In[125]:
-
-
 # Store the sentiment in a new column, NOTE 0 is negative, 4 is positive
 unclassified_df['Sentiment'] = unclassified_tweet_sentiments_bayes
-
-
-# In[127]:
-
 
 unclassified_df.head()
 
 
 # Need code to classify the tweets for the different major political parties, in this case there are 4 major political party categories I will consider in the Canadian Context ***'Liberal', 'Conservative', 'NDP', Others'***
 # As this data needs to be assigned to a party, a simple word frequency counter algorithm will be used to assign to each party
-
-# In[133]:
-
-
-dic = { i:i**2 for i in range(0,10)}
-1 in dic.keys()
-
-
-# In[134]:
-
 
 # Preporcessor and tokenizer code
 
@@ -329,44 +260,28 @@ def party(tw):
     
 
 
-# In[136]:
-
-
 # Run our Party assignement function through the data set
 unclassified_df['Party'] = unclassified_df['Tweet'].apply(party)
 unclassified_df.head(10)
-
-
-# In[155]:
 
 
 unclassified_df['Count'] = 1
 unclassified_df.head(10)
 
 
-# In[195]:
-
 
 party_db = unclassified_df[['Party','Sentiment','Count']]
 print(party_db.groupby('Party').describe())
-
-
-# In[213]:
 
 
 pvt_party = party_db.pivot_table(values='Count',index='Sentiment',columns='Party',aggfunc=np.sum)
 pvt_party
 
 
-# In[214]:
-
 
 # Renaming the Indices to reflect positive and negative statements
 pvt_party = pvt_party.rename(index={'0':'Negative', '4':'Positive'})
 pvt_party.transpose()
-
-
-# In[228]:
 
 
 pvt_party.transpose().plot.bar(figsize=(15,10))
@@ -376,17 +291,11 @@ plt.ylabel('Number of Tweets')
 plt.savefig('Politiacal Sentiments 2015 Elections.png', dpi=100)
 
 
-# In[226]:
-
-
 pvt_party3 = pvt_party.transpose()
 #conservative_sum = pvt_party2.loc['Conservative']['Negative'] + pvt_party2.loc['Conservative']['Positive']
 
 #conservative_sum
 pvt_party3
-
-
-# In[217]:
 
 
 pvt_party3.sum(axis=1)
@@ -396,14 +305,8 @@ nsum = pvt_party3.sum(axis=1).loc['NDP']
 osum = pvt_party3.sum(axis=1).loc['Others']
 
 
-# In[224]:
-
-
 pvt_partyp =pvt_party3.copy()
 pvt_partyp
-
-
-# In[227]:
 
 
 pvt_partyp.loc['Conservative']['Negative'] = (pvt_party3.loc['Conservative']['Negative']/csum)*100.0
@@ -416,9 +319,6 @@ pvt_partyp.loc['Others']['Negative'] = (pvt_party3.loc['Others']['Negative']/osu
 pvt_partyp.loc['Others']['Positive'] = (pvt_party3.loc['Others']['Positive']/osum)*100.0
 
 pvt_partyp
-
-
-# In[231]:
 
 
 pvt_partyp.plot.bar(figsize=(15,10))
